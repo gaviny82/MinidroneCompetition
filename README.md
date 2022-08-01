@@ -97,6 +97,11 @@ Run this command in MATLAB to generate a new project:
 
 ## Submission requirement
 
-As per Section B.4 in [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf),
+As per Section B.2 and B.4 in [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf),
 
--  Do **NOT** add any Simulink models or MATLAB files to the subfolders. If you have written any additional MATLAB files or Simulink models, you can add them to the main `parrotMinidroneCompetition` model folder. 
+- Do **NOT** add any Simulink models or MATLAB files to the subfolders. If you have written any additional MATLAB files or Simulink models, you can add them to the main `parrotMinidroneCompetition` model folder. 
+- The model must be **code generation capable**. This can be tested by generating C code when the Flight Control System is opened as the top model.
+
+As described in [Model description](https://uk.mathworks.com/videos/mathworks-minidrone-competition-model-description-1551445160030.html) 3:02, only the following modules are expected to be edited.
+- `parrotMinidroneCompetition/Flight Control System (flightControlSystem)/Control System/Path Planning`
+- `parrotMinidroneCompetition/Flight Control System (flightControlSystem)/Image Processing System`
