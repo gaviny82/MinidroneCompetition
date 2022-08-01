@@ -10,8 +10,6 @@ This example is the reference model to be used by participants of the MathWorks 
 | Video Submission      | 10 Oct 2022 |
 | Final Round           | 28 Oct 2022 |
 
-<br>
-
 # Resources
 [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf)
 
@@ -26,8 +24,6 @@ This example is the reference model to be used by participants of the MathWorks 
 [Online courses](https://uk.mathworks.com/academia/targeted/online-learning.html)
 
 [Version control](https://uk.mathworks.com/help/simulink/ug/set-up-git-source-control.html)
-
-<br>
 
 # Development environment
 The latest release of MATLAB was R2022a (released on 9 Mar 2022) when the competition was launched (as per Section B.2 in [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf)).
