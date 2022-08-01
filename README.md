@@ -10,7 +10,10 @@ This example is the reference model to be used by participants of the MathWorks 
 | Video Submission      | 10 Oct 2022 |
 | Final Round           | 28 Oct 2022 |
 
+
+
 # Resources
+
 [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf)
 
 [MathWorks Minidome Competition video series](https://uk.mathworks.com/videos/series/mathworks-minidrone-competition.html)
@@ -27,7 +30,10 @@ This example is the reference model to be used by participants of the MathWorks 
 
 [Version control](https://uk.mathworks.com/help/simulink/ug/set-up-git-source-control.html)
 
+
+
 # Development environment
+
 The latest release of MATLAB was R2022a (released on 9 Mar 2022) when the competition was launched (as per Section B.2 in [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf)).
 
 Add-ons required:
@@ -75,3 +81,22 @@ Run this command in MATLAB to generate a new project:
 >> parrotMinidroneCompetitionStart
 ```
 
+
+
+# Folder structure
+
+- The flight control system is in `controller/flightControlSystem.slx`. This file includes both the image processing and control systems.
+- The `linearAirframe` module in `Multicopter Model` is in `linearAirframe/linearAirframe.slx`.
+- The `nonlinearAirframe` module in `Multicopter Model` is in `nonlinearAirframe/nonlinearAirframe.slx`.
+
+- The other parts of the model are in `mainModels/parrotMinidroneCompetition.slx`.
+
+- Documentation should be stored in the `docs` folder.
+
+
+
+## Submission requirement
+
+As per Section B.4 in [Competition guidelines](https://uk.mathworks.com/content/dam/mathworks/mathworks-dot-com/academia/student-competitions/minidrone-competition/mathworks-minidrone-competition-guidelines.pdf),
+
+-  Do **NOT** add any Simulink models or MATLAB files to the subfolders. If you have written any additional MATLAB files or Simulink models, you can add them to the main `parrotMinidroneCompetition` model folder. 
