@@ -94,4 +94,4 @@ The `type` field should take one of the following values only:
 
 The x- and y-coordinates are in the coordinate system defined as below:
 
-![ImageCoordinateSystem](/assets/ImageCoordinateSystem.png)
+![ImageCoordinateSystem](assets/ImageCoordinateSystem.png)
