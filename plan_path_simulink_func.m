@@ -28,7 +28,7 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
     xRel = vision_data.x*perPxl;
     yRel = vision_data.y*perPxl;
 
-    Err = 0.005; % Set error allowed in simulation background units (used later)
+    Err = 3*perPxl; % Set error allowed in simulation background units (used later)
 
     % Transform the relative coordinates from the camera view to the
     % simulation background coordinates
