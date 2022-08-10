@@ -37,6 +37,7 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
     LANDING_HEIGHT_THRESHOLD = 0.1;         % TODO: to be adjusted based on min height that the sensor can detect
     LANDING_HEIGHT_VAR_THRESHOLD = 0.001;   % TODO: to be adjusted
     ANGLE_THRESHOLD = 0.087266;            % 5 deg
+    MAX_MOVE_STEP = 0.2;
 
     if current_state == 0 % Takeoff
 
@@ -62,7 +63,11 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
         for k = 1:10
             point1 = getPointFromVisionData(vision_data, k);
             point2 = getPointFromVisionData(vision_data, k + 1);
-            % TODO: Stop the loop if next point does not exist by checking point2.type == -1 (use -1 to indicate the element in the array is not used)
+
+            % Exit loop if next point does not exist
+            if point1.type == -1 || point2.type == -1
+                break;
+            end
 
             if passesOrigin(point1, point2, PIXEL_ERROR_ALLOWED)
 
@@ -72,6 +77,11 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
 
                 if k <= 9 % check the next segment
                     point3 = getPointFromVisionData(vision_data, k + 2);
+                    
+                    if point3.type == -1
+                        continue;
+                    end
+                    
                     if passesOrigin(point2, point3, PIXEL_ERROR_ALLOWED)
                         % Point2 is the turning point, ignored
                         pointB = point3;
@@ -92,20 +102,46 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
         thetaA = getAngle(pointA.x, pointA.y);
         thetaB = getAngle(pointB.x, pointB.y);
 
-        % Reverse current direction
-        if theta_current <= 0
-            theta_current = theta_current + pi;
-        else
-            theta_current = theta_current - pi;
-        end
-
-        % If the reversed current direction is in the same direction as pointA
-        if abs(thetaA - (theta_current)) < ANGLE_THRESHOLD
+        
+        if thetaA == 0 && pointA.type == 2      % This happens immediately after takeoff is complete
             pointNext = pointB;
-        else
+        elseif thetaB == 0 && pointB.type == 2  % This happens immediately after takeoff is complete
             pointNext = pointA;
+        else % General case
+            % Reverse current direction
+            if theta_current <= 0
+                theta_current = theta_current + pi;
+            else
+                theta_current = theta_current - pi;
+            end
+    
+            % If the reversed current direction is in the same direction as pointA
+            if abs(thetaA - (theta_current)) < ANGLE_THRESHOLD
+                pointNext = pointB;
+            else
+                pointNext = pointA;
+            end
         end
 
+        % Assign target_x,y,z
+        % Note: y-direction on the image is x-direction of the minidrone.
+        target_x_tmp = pixel2metres(pointNext.y, abs(current_pos.Z)) + current_pos.X;
+        if target_x_tmp > current_pos.X + MAX_MOVE_STEP
+            target_x = cast(current_pos.X + MAX_MOVE_STEP * sign(target_x_tmp), "double");
+        else
+            target_x = cast(target_x_tmp, "double");
+        end
+
+        target_y_tmp = pixel2metres(pointNext.x, abs(current_pos.Z)) + current_pos.Y;
+        if abs(target_y_tmp - current_pos.Y) > MAX_MOVE_STEP
+            target_y = cast(current_pos.Y + MAX_MOVE_STEP * sign(target_y_tmp), "double");
+        else
+            target_y = cast(target_y_tmp, "double");
+        end
+        
+        target_z = -1.1;
+
+        % Assign flags
         landing_zone_detected = pointNext.type == 2;
 
         takeoff_complete = true;
