@@ -86,9 +86,11 @@ The `type` field should take one of the following values only:
 
 | `type` | Value                                                        |
 | ------ | ------------------------------------------------------------ |
+|-1      | This element is not used in the array.                       |
 | 0      | The point is an intersection of two segments of the track.   |
 | 1      | The point is on the edge of the camera view.                 |
-| 2      | The point is the end of track, i.e. the starting point or the circular landing zone. |
+| 2      | The point is the end of track, i.e. the starting point or the end of track. |
+| 3      | This the centre of the circular landing zone.                |
 
 ## Coordinate system
 

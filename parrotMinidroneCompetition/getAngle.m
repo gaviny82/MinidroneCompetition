@@ -1,14 +1,14 @@
 % Returns the angle (rad) from the positive x-axis of a position vector [x;y] in Cartesian coordinates
-function angle = getAngle(x, y)
+function angle = getAngle(x, y, error)
 
-    if x == 0 
-        if y == 0
+    if abs(x) <= error 
+        if abs(y) <= error
             angle = 0;
             return;
-        elseif y > 0
+        elseif y > error
             angle = pi / 2;
             return;
-        elseif y < 0
+        elseif y < -error
             angle = -pi / 2;
             return;
         end

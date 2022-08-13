@@ -11,8 +11,8 @@
 function [takeoff_complete, landing_ready, landing_zone_detected, target_x, target_y, target_z, motion_history] = plan_path_simulink_func(current_pos, vision_data, current_state, motion_history)
     
     % Default return values
-    target_x = 0;
-    target_y = 0;
+    target_x = cast(current_pos.X, "double");
+    target_y = cast(current_pos.Y, "double");
     target_z = -1.1;
     takeoff_complete = false;
     landing_zone_detected = false;
@@ -34,10 +34,14 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
     HEIGHT_VAR_THRESHOLD = 0.1;             % TODO: to be adjusted
     APPROACH_DISTANCE_THRESHOLD = 0.001;    % in metres TODO: to be adjusted
     APPROACH_DISTANCE_VAR_THRESHOLD = 0.0001;    % TODO: to be adjusted
-    LANDING_HEIGHT_THRESHOLD = 0.1;         % TODO: to be adjusted based on min height that the sensor can detect
-    LANDING_HEIGHT_VAR_THRESHOLD = 0.001;   % TODO: to be adjusted
-    ANGLE_THRESHOLD = 0.087266;            % 5 deg
+    LANDING_HEIGHT_THRESHOLD = 0.15;         % TODO: to be adjusted based on min height that the sensor can detect
+    ANGLE_THRESHOLD = 0.087266;             % 5 deg
     MAX_MOVE_STEP = 0.2;
+    HORIZONTAL_VELOCITY_THRESHOLD = 0.05;
+
+    landing_zone.x = cast(current_pos.X, "double");
+    landing_zone.y = cast(current_pos.Y, "double");
+    landing_zone.type = 3;
 
     if current_state == 0 % Takeoff
 
@@ -79,7 +83,17 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
                     point3 = getPointFromVisionData(vision_data, k + 2);
                     
                     if point3.type == -1
-                        continue;
+                        break;
+                    end
+
+                    % Landing zone detected
+                    if point3.type == 3
+                        % Set flags and return immediately
+                        landing_zone_detected = true;
+                        takeoff_complete = true;
+                        landing_ready = false;
+
+                        return;
                     end
                     
                     if passesOrigin(point2, point3, PIXEL_ERROR_ALLOWED)
@@ -98,16 +112,17 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
 
         % Select either pointA or pointB based on current flight direction
         % Eliminate the one in the direction in which the minidrone is travelling.
-        theta_current = getAngle(current_pos.dx, current_pos.dy);
-        thetaA = getAngle(pointA.x, pointA.y);
-        thetaB = getAngle(pointB.x, pointB.y);
+        theta_current = getAngle(current_pos.dx, current_pos.dy, 0);
+        thetaA = getAngle(pointA.x, pointA.y, PIXEL_ERROR_ALLOWED);
+        thetaB = getAngle(pointB.x, pointB.y, PIXEL_ERROR_ALLOWED);
 
-        
-        if thetaA == 0 && pointA.type == 2      % This happens immediately after takeoff is complete
+        horizontal_velocity = sqrt(current_pos.dx^2 + current_pos.dy^2); % This is used to determine if the minidrone has just taken off, or it is at the end of track
+
+        if thetaA == 0 && pointA.type == 2 && horizontal_velocity < HORIZONTAL_VELOCITY_THRESHOLD      % This happens immediately after takeoff is complete
             pointNext = pointB;
-        elseif thetaB == 0 && pointB.type == 2  % This happens immediately after takeoff is complete
+        elseif thetaB == 0 && pointB.type == 2 && horizontal_velocity < HORIZONTAL_VELOCITY_THRESHOLD  % This happens immediately after takeoff is complete
             pointNext = pointA;
-        else % General case
+        else % General case: any time other than takeoff
             % Reverse current direction
             if theta_current <= 0
                 theta_current = theta_current + pi;
@@ -142,27 +157,25 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
         target_z = -1.1;
 
         % Assign flags
-        landing_zone_detected = pointNext.type == 2;
-
+        landing_zone_detected = false;
         takeoff_complete = true;
         landing_ready = false;
 
     elseif current_state == 2 % Approaching landing site.
 
-        landing_zone.x = 0;
-        landing_zone.y = 0;
-        landing_zone.type = -1;
+        landing_zone_detected = false;
 
         % Find landing zone coordinates by iterating through vision_data and find the one with type == 2
         for k = 1:11
-            if vision_data(3, k) == 2
+            if vision_data(3, k) == 3
                 landing_zone = getPointFromVisionData(vision_data, k);
+                landing_zone_detected = true;
                 break;
             end
         end
 
         % landing zone lost
-        if landing_zone.type == -1
+        if ~landing_zone_detected
             takeoff_complete = true;
             landing_zone_detected = false;
             landing_ready = false;
@@ -171,8 +184,9 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
         end
                 
         % The minidrone approaches the landing zone at constant height and the horizontal distance is calculated:
-        target_x = cast(pixel2metres(landing_zone.x, abs(current_pos.Z)) + current_pos.X, "double");
-        target_y = cast(pixel2metres(landing_zone.y, abs(current_pos.Z)) + current_pos.Y, "double");
+        % Note: y-direction on the image is x-direction of the minidrone.
+        target_x = cast(pixel2metres(landing_zone.y, abs(current_pos.Z)) + current_pos.X, "double");
+        target_y = cast(pixel2metres(landing_zone.x, abs(current_pos.Z)) + current_pos.Y, "double");
         target_z = -1.1;
         
         % Calculate the distance to the landing zone in the past 0.5 second.
@@ -186,13 +200,15 @@ function [takeoff_complete, landing_ready, landing_zone_detected, target_x, targ
 
     elseif current_state == 3 % Descending
 
-        % TODO: 
-        % - the height is slowly decreased until ground is reached (z = 0).
-        % - set target_z directly to zero if height < HEIGHT_VAR_THRESHOLD
-        target_x = cast(current_pos.X, "double");
-        target_y = cast(current_pos.Y, "double");
+        % The height is slowly decreased until ground is reached (z = 0).
+        target_x = cast(x_history(1), "double");
+        target_y = cast(y_history(1), "double");
         target_z = cast(current_pos.Z + 0.0005, "double");
         
+        if abs(target_z) < HEIGHT_THRESHOLD
+            target_z = 0;
+        end
+
         takeoff_complete = true;
         landing_zone_detected = true;
         landing_ready = true;
