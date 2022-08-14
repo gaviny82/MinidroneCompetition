@@ -1,20 +1,17 @@
-function vision_data = process_image_simulink_func(R, G, B)
+function vision_data = generate_vision_data_simulink_func(lines)
     
     % set up
     vision_data = zeros([3 11]);
     vision_data(3,:) = -1;
     
-    redBW = imbinarize(R); % remove background if needed
-    % redBW3 = bwskel(redBW); % doesn't work well due to branched endpoints
-    redBW2 = bwmorph(redBW,"thin",6); % num of operations to be adjusted, edges to be solved
-    redBW3 = bwmorph(redBW2,"skeleton",3);
     
     
     % Hough transform
-    [H,theta,rho] = hough(redBW3);
+    %[H,theta,rho] = hough(redBW3);
+    
     % houghMatViz(H,theta,rho)
-    peaks = houghpeaks(H,10,"NHoodSize",[13,13]); % numpeaks to be adjusted
-    lines = houghlines(redBW3,theta,rho,peaks);
+    %peaks = houghpeaks(H,10,"NHoodSize",[13,13]); % numpeaks to be adjusted
+    %lines = houghlines(redBW3,theta,rho,peaks);
     % plotHoughLines(img,lines)
     
     
